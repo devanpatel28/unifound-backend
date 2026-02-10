@@ -5,9 +5,11 @@ import { verifyToken } from '@/app/lib/middleware';
 // GET: Fetch single item
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     const { data, error } = await supabase
       .from('items')
       .select(`
@@ -15,7 +17,7 @@ export async function GET(
         users:user_id (first_name, last_name, phone, email),
         categories:category_id (name, icon_name)
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('is_active', true)
       .single();
 
@@ -34,7 +36,7 @@ export async function GET(
 // PATCH: Update item (owner only)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await verifyToken(request);
@@ -45,13 +47,14 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
     const body = await request.json();
 
     // Verify ownership
     const { data: existingItem } = await supabaseAdmin
       .from('items')
       .select('user_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (!existingItem || existingItem.user_id !== authResult.userId) {
@@ -64,7 +67,7 @@ export async function PATCH(
     const { data, error } = await supabaseAdmin
       .from('items')
       .update(body)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -83,7 +86,7 @@ export async function PATCH(
 // DELETE: Delete item (owner only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await verifyToken(request);
@@ -94,11 +97,13 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
+
     // Verify ownership
     const { data: existingItem } = await supabaseAdmin
       .from('items')
       .select('user_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (!existingItem || existingItem.user_id !== authResult.userId) {
@@ -112,7 +117,7 @@ export async function DELETE(
     const { error } = await supabaseAdmin
       .from('items')
       .update({ is_active: false })
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) throw error;
 

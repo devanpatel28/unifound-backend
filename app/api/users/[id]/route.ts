@@ -6,13 +6,15 @@ import { updateData } from '@/types';
 // GET: Get user by ID (public - limited info)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     const { data: user, error } = await supabaseAdmin
       .from('users')
       .select('id, first_name, last_name, profile_image_url, created_at')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (error) {
@@ -38,7 +40,7 @@ export async function GET(
 // PATCH: Update user (self only)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await verifyToken(request);
@@ -49,8 +51,10 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
+
     // Check if user is updating their own profile
-    if (authResult.userId !== params.id) {
+    if (authResult.userId !== id) {
       return NextResponse.json(
         { error: 'Unauthorized - You can only update your own profile' },
         { status: 403 }
@@ -69,7 +73,7 @@ export async function PATCH(
     const { data: user, error } = await supabaseAdmin
       .from('users')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select('id, university_id, email, first_name, last_name, phone, profile_image_url')
       .single();
 
@@ -92,7 +96,7 @@ export async function PATCH(
 // DELETE: Delete user account (self only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await verifyToken(request);
@@ -103,8 +107,10 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
+
     // Check if user is deleting their own account
-    if (authResult.userId !== params.id) {
+    if (authResult.userId !== id) {
       return NextResponse.json(
         { error: 'Unauthorized - You can only delete your own account' },
         { status: 403 }
@@ -115,7 +121,7 @@ export async function DELETE(
     const { error } = await supabaseAdmin
       .from('users')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) throw error;
 
