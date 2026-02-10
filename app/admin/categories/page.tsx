@@ -1,11 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FolderTree } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+interface Category {
+  id: string;
+  name: string;
+  icon_name: string;
+  is_active: boolean;
+  created_at: string;
+}
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchCategories();
@@ -15,51 +32,65 @@ export default function CategoriesPage() {
     try {
       const response = await fetch('/api/categories');
       const data = await response.json();
+
       if (data.success) {
         setCategories(data.categories);
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
-        <span className="px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
-          {categories.length} Categories
-        </span>
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
+        <p className="text-muted-foreground">
+          Manage item categories
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {categories.map((category) => (
-          <div
-            key={category.id}
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                <FolderTree size={24} className="text-primary-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">{category.name}</h3>
-                <p className="text-sm text-gray-500">{category.icon_name}</p>
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Categories</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Loading categories...
             </div>
-          </div>
-        ))}
-      </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Icon</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {categories.map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell className="font-medium">
+                      {category.name}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {category.icon_name}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={category.is_active ? 'default' : 'secondary'}>
+                        {category.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

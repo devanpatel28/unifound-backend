@@ -1,166 +1,180 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAdminToken } from '@/app/lib/adminAuth';
-import { Search, Mail, Phone, Calendar } from 'lucide-react';
+import { useAdmin } from '@/contexts/AdminContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 
+interface User {
+  id: string;
+  university_id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  is_verified: boolean;
+  created_at: string;
+}
+
 export default function UsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { token } = useAdmin();
+  const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState<any>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchUsers();
   }, [page, search]);
 
   const fetchUsers = async () => {
+    setIsLoading(true);
     try {
-      const token = getAdminToken();
       const response = await fetch(
         `/api/users?page=${page}&limit=10&search=${search}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
       );
+
       const data = await response.json();
       if (data.success) {
         setUsers(data.users);
-        setPagination(data.pagination);
+        setTotalPages(data.pagination.totalPages);
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = (value: string) => {
+    setSearch(value);
     setPage(1);
-    fetchUsers();
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Users Management</h1>
-        <span className="px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
-          {pagination?.total || 0} Total Users
-        </span>
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+        <p className="text-muted-foreground">
+          Manage all registered students
+        </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <form onSubmit={handleSearch} className="flex gap-4">
-          <div className="flex-1 relative">
-            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, or university ID..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-            />
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>All Users</CardTitle>
+            <div className="relative w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, ID, email..."
+                value={search}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-8"
+              />
+            </div>
           </div>
-          <button
-            type="submit"
-            className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
-          >
-            Search
-          </button>
-        </form>
-      </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Loading users...
+            </div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No users found
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>University ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Joined</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">
+                        {user.university_id}
+                      </TableCell>
+                      <TableCell>
+                        {user.first_name} {user.last_name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.email}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.phone}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={user.is_verified ? 'default' : 'secondary'}
+                        >
+                          {user.is_verified ? 'Verified' : 'Unverified'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {format(new Date(user.created_at), 'MMM dd, yyyy')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">User</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">University ID</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Contact</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Joined</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {user.first_name} {user.last_name}
-                    </p>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="font-mono text-sm text-gray-600">{user.university_id}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Mail size={14} className="mr-2" />
-                      {user.email}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Phone size={14} className="mr-2" />
-                      {user.phone}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  {user.is_verified ? (
-                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                      Verified
-                    </span>
-                  ) : (
-                    <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
-                      Unverified
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar size={14} className="mr-2" />
-                    {format(new Date(user.created_at), 'MMM dd, yyyy')}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {pagination && pagination.totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, pagination.total)} of {pagination.total} users
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage(page + 1)}
-              disabled={page === pagination.totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
+              {/* Pagination */}
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Page {page} of {totalPages}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
