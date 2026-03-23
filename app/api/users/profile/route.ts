@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase';
 import { verifyToken } from '@/app/lib/middleware';
 import { updateData } from '@/types';
+import { handleOptions } from '@/lib/cors';
+
+export { handleOptions as OPTIONS };
 
 // GET: Get current logged-in user's profile
 export async function GET(request: NextRequest) {

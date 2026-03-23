@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '@/app/lib/supabase';
+import { handleOptions } from '@/lib/cors';
+
+export { handleOptions as OPTIONS };
 
 // GET: Get all users (Admin only)
 export async function GET(request: NextRequest) {

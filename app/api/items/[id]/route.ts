@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/app/lib/supabase';
 import { verifyToken } from '@/app/lib/middleware';
+import { handleOptions } from '@/lib/cors';
+
+export { handleOptions as OPTIONS };
 
 // GET: Fetch single item
 export async function GET(

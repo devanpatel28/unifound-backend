@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { imagekit } from '@/app/lib/imagekit';
 import { verifyToken } from '@/app/lib/middleware';
+import { handleOptions } from '@/lib/cors';
+
+export { handleOptions as OPTIONS };
 
 export async function POST(request: NextRequest) {
   try {

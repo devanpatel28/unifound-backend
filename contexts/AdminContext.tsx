@@ -63,7 +63,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setAdmin(null);
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_data');
-    router.push('/admin/login');
+    router.push('/admin');
+
   };
 
   return (

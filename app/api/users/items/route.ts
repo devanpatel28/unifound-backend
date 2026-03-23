@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase';
 import { verifyToken } from '@/app/lib/middleware';
+import { handleOptions } from '@/lib/cors';
+
+export { handleOptions as OPTIONS };
 
 // GET: Get all items posted by current user
 export async function GET(request: NextRequest) {

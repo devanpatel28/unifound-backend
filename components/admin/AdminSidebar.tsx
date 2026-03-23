@@ -26,6 +26,9 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const { admin, logout } = useAdmin();
 
+  // Don't render sidebar on login page
+  if (pathname === '/admin') return null;
+
   return (
     <div className="flex h-screen w-64 flex-col border-r bg-slate-50">
       {/* Logo */}
@@ -62,7 +65,7 @@ export default function AdminSidebar() {
         <div className="flex items-center gap-3 mb-3">
           <Avatar>
             <AvatarFallback className="bg-primary text-primary-foreground">
-              {admin?.full_name.charAt(0).toUpperCase()}
+              {admin?.full_name?.charAt(0)?.toUpperCase() ?? 'A'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden">

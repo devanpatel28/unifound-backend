@@ -69,6 +69,15 @@ export default function UsersPage() {
     setPage(1);
   };
 
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '—';
+    try {
+      return format(new Date(dateStr), 'MMM dd, yyyy');
+    } catch {
+      return '—';
+    }
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -119,16 +128,16 @@ export default function UsersPage() {
                   {users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
-                        {user.university_id}
+                        {user.university_id ?? '—'}
                       </TableCell>
                       <TableCell>
-                        {user.first_name} {user.last_name}
+                        {`${user.first_name ?? ''} ${user.last_name ?? ''}`.trim() || '—'}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {user.email}
+                        {user.email ?? '—'}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {user.phone}
+                        {user.phone ?? '—'}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -138,7 +147,7 @@ export default function UsersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(user.created_at), 'MMM dd, yyyy')}
+                        {formatDate(user.created_at)}
                       </TableCell>
                     </TableRow>
                   ))}

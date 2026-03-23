@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '@/app/lib/supabase';
+import { handleOptions } from '@/lib/cors';
+
+export { handleOptions as OPTIONS };
 
 export async function POST(request: NextRequest) {
   try {

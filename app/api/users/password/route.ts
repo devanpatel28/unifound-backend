@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { supabaseAdmin } from '@/app/lib/supabase';
 import { verifyToken } from '@/app/lib/middleware';
+import { handleOptions } from '@/lib/cors';
+
+export { handleOptions as OPTIONS };
 
 // PATCH: Change user password
 export async function PATCH(request: NextRequest) {
