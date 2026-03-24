@@ -13,7 +13,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('items')
       .select(`
         *,
@@ -116,15 +116,15 @@ export async function DELETE(
       );
     }
 
-    // Soft delete
+    // Hard delete — removes from DB (CASCADE deletes related claims)
     const { error } = await supabaseAdmin
       .from('items')
-      .update({ is_active: false })
+      .delete()
       .eq('id', id);
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: 'Item deleted successfully' });
 
   } catch (error) {
     return NextResponse.json(

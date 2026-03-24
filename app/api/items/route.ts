@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const category_id = searchParams.get('category');
     const is_claimed = searchParams.get('claimed');
 
-    let query = supabase
+    let query = supabaseAdmin
       .from('items')
       .select(`
         *,
@@ -23,16 +23,19 @@ export async function GET(request: NextRequest) {
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
+    // By default hide claimed items; pass ?claimed=true to show them
+    if (is_claimed !== null) {
+      query = query.eq('is_claimed', is_claimed === 'true');
+    } else {
+      query = query.eq('is_claimed', false);
+    }
+
     if (item_type) {
       query = query.eq('item_type', item_type);
     }
 
     if (category_id) {
       query = query.eq('category_id', category_id);
-    }
-
-    if (is_claimed !== null) {
-      query = query.eq('is_claimed', is_claimed === 'true');
     }
 
     const { data, error } = await query;
